@@ -190,7 +190,7 @@ bot.dialog('/', [
                         axios.post(
                             config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
                             buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}},
+                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
                         session.send(`El archivo **${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
@@ -306,7 +306,7 @@ bot.dialog('/', [
                         axios.post(
                             config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
                             buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}},
+                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
                         session.send(`El archivo **${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
