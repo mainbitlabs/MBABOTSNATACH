@@ -12,6 +12,7 @@
     "axios": "^0.18.0",
     "botbuilder": "^3.13.1",
     "botbuilder-azure": "^3.0.4",
+    "csv-parse": "^4.3.4",
     "image-to-base64": "^2.0.1",
     "restify": "^8.2.0"
   },

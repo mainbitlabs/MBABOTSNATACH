@@ -345,7 +345,7 @@ csv-generate@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/csv-generate/-/csv-generate-3.2.0.tgz#17c0defbad71bfe63182cd3c41c972138ce0b300"
 
-csv-parse@^4.3.0:
+csv-parse@^4.3.0, csv-parse@^4.3.4:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.3.4.tgz#fc896c170ebbdf6fb286de85c41bbaea4973d25f"
 
