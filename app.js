@@ -177,15 +177,20 @@ bot.dialog('/', [
                                     "body": [
                                         {
                                             "type": "ColumnSet",
+                                            "spacing": "None",
+                                            "height": "stretch",
                                             "columns": [
                                                 {
                                                     "type": "Column",
+                                                    "spacing": "None",
+                                                    "height": "stretch",
                                                     "verticalContentAlignment": "Center",
                                                     "items": [
                                                         {
                                                             "type": "Image",
                                                             "horizontalAlignment": "Left",
                                                             "spacing": "None",
+                                                            "height": "stretch",
                                                             "url": "http://blog.orb-data.com/wp-content/uploads/2016/05/service-now-logo.png",
                                                             "size": "Large"
                                                         }
@@ -194,13 +199,19 @@ bot.dialog('/', [
                                                 },
                                                 {
                                                     "type": "Column",
+                                                    "spacing": "None",
+                                                    "height": "stretch",
                                                     "items": [
                                                         {
                                                             "type": "TextBlock",
+                                                            "spacing": "None",
+                                                            "height": "stretch",
                                                             "text": "No de Ticket"
                                                         },
                                                         {
                                                             "type": "TextBlock",
+                                                            "spacing": "None",
+                                                            "height": "stretch",
                                                             "size": "Large",
                                                             "color": "Accent",
                                                             "text": session.dialogData.ticket
@@ -212,6 +223,8 @@ bot.dialog('/', [
                                         },
                                         {
                                             "type": "TextBlock",
+                                            "spacing": "None",
+                                            "height": "stretch",
                                             "size": "Medium",
                                             "weight": "Bolder",
                                             "text": "Información del ticket",
