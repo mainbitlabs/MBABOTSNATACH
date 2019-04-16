@@ -73,120 +73,144 @@ bot.dialog('/', [
         session.dialogData.sysID = '';
         axios.get(
 
-            config.url + valor.ticket,
+            config.url + "/v2/table/incident?number=" + valor.ticket,
             {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
         
         ).then((data)=>{
         
             var result = data.data.result[0];
+            console.log(result);
+            
             session.dialogData.sysID = data.data.result[0].sys_id;
             //console.log(" Título:", data.data.result );
             axios.get(
-                "https://mainbitdev1.service-now.com/api/now/attachment?sysparm_query=table_sys_id="+session.dialogData.sysID+"&sysparm_limit=10",       
+                config.url + "/attachment?sysparm_query=table_sys_id=" + session.dialogData.sysID + "&sysparm_limit=10",       
                  {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
             ).then((data1)=>{
                 //Devuelve el número de archivos adjuntos 
                 var xcount = data1.headers["x-total-count"];
                 // session.send(` Título: **${result.subcategory}** \n Descripción: **${result.short_description}** \n Creado por: **${result.sys_created_by}** \n Creado el: **${result.sys_created_on}** \n Última actualización: **${result.sys_updated_on}** \n Resuelto el: **${result.resolved_at}** \n Archivos adjuntos: **${xcount}**`);
-                var info = new builder.Message(session)
-    .addAttachment({
-        contentType: "application/vnd.microsoft.card.adaptive",
-        content:{
-                    "type": "AdaptiveCard",
-                    "body": [
-                        {
-                            "type": "ColumnSet",
-                            "columns": [
-                                {
-                                    "type": "Column",
-                                    "verticalContentAlignment": "Center",
-                                    "items": [
+                
+                
+                axios.get(
+                    config.url+"/v2/table/core_company/" + result.company.value,
+                    {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+                
+                ).then((core)=>{
+                    var company = core.data.result.name;
+            session.dialogData.company = company;
+                // CODE GOES HERE
+                    console.log("core_company: "+ company);
+                    console.log("data: "+ result.subcategory);
+                    var info = new builder.Message(session)
+                    .addAttachment({
+                        contentType: "application/vnd.microsoft.card.adaptive",
+                        content:{
+                                    "type": "AdaptiveCard",
+                                    "body": [
                                         {
-                                            "type": "Image",
-                                            "horizontalAlignment": "Left",
-                                            "spacing": "None",
-                                            "url": "http://blog.orb-data.com/wp-content/uploads/2016/05/service-now-logo.png",
-                                            "size": "Large"
-                                        }
-                                    ],
-                                    "width": "stretch"
-                                },
-                                {
-                                    "type": "Column",
-                                    "items": [
-                                        {
-                                            "type": "TextBlock",
-                                            "text": "No de Ticket"
+                                            "type": "ColumnSet",
+                                            "columns": [
+                                                {
+                                                    "type": "Column",
+                                                    "verticalContentAlignment": "Center",
+                                                    "items": [
+                                                        {
+                                                            "type": "Image",
+                                                            "horizontalAlignment": "Left",
+                                                            "spacing": "None",
+                                                            "url": "http://blog.orb-data.com/wp-content/uploads/2016/05/service-now-logo.png",
+                                                            "size": "Large"
+                                                        }
+                                                    ],
+                                                    "width": "stretch"
+                                                },
+                                                {
+                                                    "type": "Column",
+                                                    "items": [
+                                                        {
+                                                            "type": "TextBlock",
+                                                            "text": "No de Ticket"
+                                                        },
+                                                        {
+                                                            "type": "TextBlock",
+                                                            "size": "Large",
+                                                            "color": "Accent",
+                                                            "text": valor.ticket
+                                                        }
+                                                    ],
+                                                    "width": "stretch"
+                                                }
+                                            ]
                                         },
                                         {
                                             "type": "TextBlock",
-                                            "size": "Large",
-                                            "color": "Accent",
-                                            "text": valor.ticket
+                                            "size": "Medium",
+                                            "weight": "Bolder",
+                                            "text": "Información del ticket",
+                                            "wrap": true
+                                        },
+                                        {
+                                            "type": "FactSet",
+                                            "facts": [
+                                                {
+                                                    "title": "Proyecto",
+                                                    "value": company
+                                                },
+                                                {
+                                                    "title": "Titulo",
+                                                    "value": result.subcategory
+                                                },
+                                                {
+                                                    "title": "Descripcion",
+                                                    "value": result.short_description
+                                                },
+                                                {
+                                                    "title": "Creado por",
+                                                    "value": result.sys_created_by
+                                                },
+                                                {
+                                                    "title": "Creado el",
+                                                    "value": result.sys_created_on
+                                                },
+                                                {
+                                                    "title": "Última actualización",
+                                                    "value": result.sys_updated_on
+                                                },
+                                                {
+                                                    "title": "Resuelto el",
+                                                    "value": result.resolved_at
+                                                },
+                                                {
+                                                    "title": "Archivos adjuntos",
+                                                    "value": xcount
+                                                }
+                                            ]
                                         }
                                     ],
-                                    "width": "stretch"
+                                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                                    "version": "1.0"
                                 }
-                            ]
-                        },
-                        {
-                            "type": "TextBlock",
-                            "size": "Medium",
-                            "weight": "Bolder",
-                            "text": "Información del ticket",
-                            "wrap": true
-                        },
-                        {
-                            "type": "FactSet",
-                            "facts": [
-                                {
-                                    "title": "Titulo",
-                                    "value": result.subcategory
-                                },
-                                {
-                                    "title": "Descripcion",
-                                    "value": result.short_description
-                                },
-                                {
-                                    "title": "Creado por",
-                                    "value": result.sys_created_by
-                                },
-                                {
-                                    "title": "Creado el",
-                                    "value": result.sys_created_on
-                                },
-                                {
-                                    "title": "Última actualización",
-                                    "value": result.sys_updated_on
-                                },
-                                {
-                                    "title": "Resuelto el",
-                                    "value": result.resolved_at
-                                },
-                                {
-                                    "title": "Archivos adjuntos",
-                                    "value": xcount
-                                }
-                            ]
-                        }
-                    ],
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                    "version": "1.0"
-                }
+                                }); //Finaliza Atachment
+                
+                                session.send(info);
+                                // for (let i = 0; i < xcount; i++) {
+                                //     var element = data1.data.result[i].file_name +"\n";
+                                    
+                                //     session.send(element);
+                                    
+                                //     // devuelve los nombres de los archivos adjuntos
+                                //     // session.send(element);
+                                // }
+                                builder.Prompts.choice(session, '¿Esta información es correcta?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+                                // console.log("Attachments: ",data1.headers["x-total-count"]);
+                                // console.log("1: ",data1.data.result[0].file_name);
+                                // console.log("2: ",data1.data.result[1].file_name);
+                // CODE ENDS HERE
+                }).catch((e)=>{
+                    console.log("error", e.toString());
+                    
                 });
-                session.send(info);
-                // for (let i = 0; i < xcount; i++) {
-                //     var element = data1.data.result[i].file_name +"\n";
-                    
-                //     session.send(element);
-                    
-                //     // devuelve los nombres de los archivos adjuntos
-                //     // session.send(element);
-                // }
-                builder.Prompts.choice(session, '¿Esta información es correcta?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
-                // console.log("Attachments: ",data1.headers["x-total-count"]);
-                // console.log("1: ",data1.data.result[0].file_name);
-                // console.log("2: ",data1.data.result[1].file_name);
                 
             }
             ).catch( (e)=>{
@@ -256,6 +280,8 @@ bot.dialog('/', [
         
     },
     function (session, results) {
+        console.log("Session_Company "+session.dialogData.company);
+        
         var msg = session.message;
         console.log('MSG: ' + msg);
         
@@ -280,7 +306,7 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = new Buffer(response, 'base64');
                         axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
+                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.company+"_"+ session.dialogData.tipo +'.'+ ctype,
                             buffer,
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
