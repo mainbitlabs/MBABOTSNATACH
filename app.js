@@ -58,25 +58,92 @@ var Opts = {
 // El díalogo principal inicia aquí
 bot.dialog('/', [
     function (session) {
-        // Primer diálogo  
-        session.beginDialog('card1');  
+        // Primer diálogo    
+        // session.send(`Hola bienvenido al Servicio Automatizado de Mainbit.`);
+        // session.send(`**Sugerencia:** Recuerda que puedes cancelar en cualquier momento escribiendo **"cancelar".** \n\n **Importante:** este bot tiene un ciclo de vida de 5 minutos, te recomendamos concluir la actividad antes de este periodo.`);
+        
+        var msg1 = new builder.Message(session)
+        .addAttachment({
+        contentType: "application/vnd.microsoft.card.adaptive",
+        content: {
+            "type": "AdaptiveCard",
+            "body": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "horizontalAlignment": "Center",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "horizontalAlignment": "Center",
+                                    "spacing": "None",
+                                    "url": "https://raw.githubusercontent.com/esanchezlMBT/images/master/logo-512.jpg",
+                                    "size": "Large"
+                                }
+                            ],
+                            "width": "stretch"
+                        },
+                        {
+                            "type": "Column",
+                            "horizontalAlignment": "Center",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "horizontalAlignment": "Center",
+                                    "spacing": "None",
+                                    "url": "https://raw.githubusercontent.com/esanchezlMBT/images/master/servicenow.png",
+                                    "size": "Large"
+                                }
+                            ],
+                            "width": "stretch"
+                        }
+                    ]
+                },
+                {
+                    "type": "TextBlock",
+                    "size": "Medium",
+                    "weight": "Bolder",
+                    "text": "Bienvenido al Servicio Automatizado de Mainbit."
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "**Sugerencia:** Recuerda que puedes cancelar en cualquier momento escribiendo **cancelar.**",
+                    "wrap": true
+                },
+                {
+                    "type": "TextBlock",
+                    "text": "**Importante:** este bot tiene un ciclo de vida de 10 minutos.",
+                    "wrap": true
+                }
+            ],
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "version": "1.0"
+        }
+            
+        
+        });
+    session.send(msg1);
+    builder.Prompts.text(session, '¿Cuál es el número de ticket de **ServiceNow** que deseas revisar?');
         time = setTimeout(() => {
             session.endConversation(`**Lo sentimos ha transcurrido el tiempo estimado para completar esta actividad. Intentalo nuevamente.**`);
         }, 300000);
     },
     
-    function (session) {
-        var valor = session.message.value;
-        console.log(valor);
-        
-        // session.dialogData.ticket = results.response;
+    function (session, results) {
+        // Envíamos un mensaje al usuario para que espere.
+        session.sendTyping();
+        session.send('Estamos atendiendo tu solicitud. Por favor espera un momento...');
+        session.dialogData.ticket = results.response;
         session.dialogData.sysID = '';
         axios.get(
 
-            config.url + "/v2/table/incident?number=" + valor.ticket,
+            config.url+ "/v2/table/incident?number=" + session.dialogData.ticket,
             {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
         
         ).then((data)=>{
+        
         
             var result = data.data.result[0];
             console.log(result);
@@ -136,7 +203,7 @@ bot.dialog('/', [
                                                             "type": "TextBlock",
                                                             "size": "Large",
                                                             "color": "Accent",
-                                                            "text": valor.ticket
+                                                            "text": session.dialogData.ticket
                                                         }
                                                     ],
                                                     "width": "stretch"
@@ -233,7 +300,7 @@ bot.dialog('/', [
 
             case Choice.No:
             clearTimeout(time);
-            session.endConversation("Por favor valida con tu contacto de soporte Mainbit que el **Número de Ticket** sea correcto");
+            session.endConversation("Por favor valida con tu soporte que el **Número de Ticket** sea correcto");
             break;
         }
         
@@ -258,7 +325,7 @@ bot.dialog('/', [
         // Quinto diálogo
         var selection2 = results.response.entity;
         session.dialogData.tipo = selection2;
-
+        session.dialogData.Discriptor ={};
         switch (selection2) {
 
             case Opts.Resguardo:
@@ -280,11 +347,7 @@ bot.dialog('/', [
         
     },
     function (session, results) {
-        console.log("Session_Company "+session.dialogData.company);
-        
         var msg = session.message;
-        console.log('MSG: ' + msg);
-        
         if (msg.attachments && msg.attachments.length > 0) {
          // Echo back attachment
          var attachment = msg.attachments[0];
@@ -306,7 +369,7 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = new Buffer(response, 'base64');
                         axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.company+"_"+ session.dialogData.tipo +'.'+ ctype,
+                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
                             buffer,
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
@@ -352,26 +415,47 @@ bot.dialog('/', [
         // Quinto diálogo
         var selection2 = results.response.entity;
         session.dialogData.tipo = selection2;
-
+        session.dialogData.Discriptor ={};
         switch (selection2) {
 
             case Opts.Resguardo:
-            
+            function appendResguardo() {
+                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
+                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
+                Discriptor.Resguardo = {'_': 'Resguardo Adjunto', '$':'Edm.String'};
+            };
+            appendResguardo();
             builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Resguardo}**`);
             break;
 
             case Opts.Borrado:
-            
+            function appendBorrado() {
+                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
+                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
+                Discriptor.Borrado = {'_': 'Borrado Adjunto', '$':'Edm.String'};
+            };
+            appendBorrado();
             builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Borrado}**`);
             break;
 
             case Opts.Baja:
-            
+            function appendBaja() {
+                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
+                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
+                Discriptor.Baja = {'_': 'Baja Adjunto', '$':'Edm.String'};
+            };
+            appendBaja();
             builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Baja}**`);
             break;
 
             case Opts.Check:
-            
+            function appendCheck() {
+                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
+                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
+                Discriptor.Check = {'_': 'Check Adjunto', '$':'Edm.String'};
+                
+            };
+            appendCheck();
             builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Check}**`);
             break;
         }
@@ -437,114 +521,4 @@ bot.dialog('cancel',
     }
 ).triggerAction(
     {matches: /(cancel|cancelar)/gi}
-);
-bot.dialog('card1', 
- 
- function (session) {
-        var mensaje ='Por favor llena todos los datos';
-        var faltaserie ='Por favor llena los datos de la serie';
-        var faltaasociado ='Por favor llena los datos de la serie';
-    // Primer diálogo    
-    if (session.message.value && session.message.value.ticket) {
-        // A Card's Submit Action obj was received
-        var valor = session.message.value;
-        console.log(valor);
-        console.log(session.message.value);
-        session.endDialog(session);
-        // next();
-        return;
-    
-    }
-    
-    var msg1 = new builder.Message(session)
-    .addAttachment({
-    contentType: "application/vnd.microsoft.card.adaptive",
-    content: {
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-        "type": "AdaptiveCard",
-        "version": "1.0",
-        "body": [
-            {
-                "type": "ColumnSet",
-                "columns": [
-                    {
-                        "type": "Column",
-                        "items": [
-                            {
-                                "type": "Image",
-                                
-                                "url": "https://raw.githubusercontent.com/esanchezlMBT/images/master/logo-512.jpg",
-                                "size": "Medium"
-                            }
-                        ],
-                        "width": "auto"
-                    },
-                    {
-                        "type": "Column",
-                        "items": [
-                            {
-                                "type": "Image",
-                                "url": "https://raw.githubusercontent.com/esanchezlMBT/images/master/servicenow.png",
-                                "size": "Medium"
-                            }
-                        ],
-                        "width": "auto"
-                    },
-                    {
-                        "type": "Column",
-                        "items": [
-                            {
-                                "type": "TextBlock",
-                                "size": "medium",
-                                "text": ""
-                            }
-                        ],
-                        "width": "stretch"
-                    }
-                ]
-            },
-            {
-                "type": "TextBlock",
-                "text": "Bienvenido al Servicio Automatizado de Mainbit.",
-                "weight": "bolder"   
-            },
-            {
-                "type": "TextBlock",
-                "text": "**Sugerencia:** Recuerda que puedes cancelar en cualquier momento escribiendo **cancelar.**",
-                "wrap": true
-                },
-                {
-                    "type": "TextBlock",
-                    "text": "**Importante:** este bot tiene un ciclo de vida de 10 minutos.",
-                    "wrap": true
-            },
-            {
-                "type": "TextBlock",
-                "text": "No Ticket ServiceNow",
-                "weight": "bolder",
-                "wrap": true
-                },
-            {
-                "type": "Input.Text",
-                "id": "ticket",
-                "placeholder": "Número de ticket"
-                }
-        ],
-        "actions": [
-            {
-                "type": "Action.Submit",
-                "title": "Enviar",
-                "data": {
-                    
-                }
-            }
-        ]
-    }
-    });
-session.send(msg1);
-
-
-
-}
- 
 );
