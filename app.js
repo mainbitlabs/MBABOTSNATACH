@@ -382,7 +382,7 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = new Buffer(response, 'base64');
                         axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
+                            config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
                             buffer,
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
@@ -498,7 +498,7 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = new Buffer(response, 'base64');
                         axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name='+session.dialogData.tipo +'.'+ ctype,
+                            config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
                             buffer,
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
