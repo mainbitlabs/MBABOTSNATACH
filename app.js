@@ -49,7 +49,10 @@ var Opts = {
     Resguardo : 'Resguardo',
     Check: 'Check',
     Borrado: 'Borrado',
-    Baja: 'Baja'
+    Borrado: 'Borrado',
+    Baja: 'Baja',
+    HS: 'HojadeServicio',
+    Ubicacion: 'Ubicacion',
  };
  
  var time;
@@ -324,7 +327,7 @@ bot.dialog('/', [
         switch (selection3) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja], { listStyle: builder.ListStyle.button });  
+            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS, Opts.Ubicacion], { listStyle: builder.ListStyle.button });  
             break;
 
             case Choice.No:
@@ -342,19 +345,27 @@ bot.dialog('/', [
         switch (selection2) {
 
             case Opts.Resguardo:
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Resguardo}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Resguardo}**`);
             break;
 
             case Opts.Borrado:
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Borrado}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Borrado}**`);
             break;
 
             case Opts.Baja:
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Baja}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Baja}**`);
             break;
 
             case Opts.Check:
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Check}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Check}**`);
+            break;
+            
+            case Opts.HS:
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.HS}**`);
+            break;
+            
+            case Opts.Ubicacion:
+                session.send('Funcionalidad en desarrollo ...');
             break;
         }
         
