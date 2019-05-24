@@ -9,6 +9,7 @@ var azurest = require('azure-storage');
 var image2base64 = require('image-to-base64');
 var axios = require('axios');
 var botbuilder_azure = require("botbuilder-azure");
+var locationDialog = require('botbuilder-location');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -38,6 +39,7 @@ var tableStorage = new botbuilder_azure.AzureBotStorage({ gzipData: false }, azu
 
 // Create your bot with a function to receive messages from the user
 var bot = new builder.UniversalBot(connector);
+bot.library(locationDialog.createLibrary("AgOQtTJyu9UTgaiqsjNjWnqSFI9pXHo6r1kGEh7seV9jNj4PhJyXKgaUKu37x_zQ"));
 bot.set('storage', tableStorage);
 
 var Choice = {
@@ -364,7 +366,7 @@ bot.dialog('/', [
             break;
             
             case Opts.Ubicacion:
-                session.send('Funcionalidad en desarrollo ...');
+                session.beginDialog('ubicacion');
             break;
         }
         
@@ -545,3 +547,36 @@ bot.dialog('cancel',
 ).triggerAction(
     {matches: /(cancel|cancelar)/gi}
 );
+bot.dialog('ubicacion', [
+    function (session) {
+        var options = {
+            prompt: "¿Cuál es tu ubicación? indica los siguientes datos separados por coma 'Calle y número, localidad, estado de la república' \n \n Ejemplo:\n \n 'Gabriel Mancera 1306, Colonia del Valle, Ciudad de México' ",
+            useNativeControl: true,
+            reverseGeocode: true,
+			skipFavorites: true,
+			skipConfirmationAsk: true,
+            requiredFields:
+                locationDialog.LocationRequiredFields.streetAddress |
+                locationDialog.LocationRequiredFields.locality |
+                locationDialog.LocationRequiredFields.region |
+                locationDialog.LocationRequiredFields.postalCode |
+                locationDialog.LocationRequiredFields.country
+        };
+
+        locationDialog.getLocation(session, options);
+    },
+    function (session, results) {
+        if (results.response) {
+            var place = results.response;
+            clearTimeout(time);
+			var formattedAddress = 
+            session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+        }
+    }
+]
+);
+
+function getFormattedAddressFromPlace(place, separator) {
+    var addressParts = [place.streetAddress, place.locality, place.region, place.postalCode, place.country];
+    return addressParts.filter(i => i).join(separator);
+}
