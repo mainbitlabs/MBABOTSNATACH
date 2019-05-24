@@ -49,7 +49,6 @@ var Opts = {
     Resguardo : 'Resguardo',
     Check: 'Check',
     Borrado: 'Borrado',
-    Borrado: 'Borrado',
     Baja: 'Baja',
     HS: 'HojadeServicio',
     Ubicacion: 'Ubicacion',
