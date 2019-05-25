@@ -52,8 +52,7 @@ var Opts = {
     Check: 'Check',
     Borrado: 'Borrado',
     Baja: 'Baja',
-    HS: 'HojadeServicio',
-    Ubicacion: 'Ubicacion',
+    HS: 'HojadeServicio'
  };
  
  var time;
@@ -306,29 +305,35 @@ bot.dialog('/', [
             session.endDialog("**Error: Los datos son incorrectos, intentalo nuevamente.**");
         });
     },
+
+function (session, results) {
+    builder.Prompts.choice(session, '¿Deseas compartir tu ubicación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+},
+
     function (session, results) {
         // Cuarto diálogo
         var selection = results.response.entity;
         switch (selection) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+                session.beginDialog("ubicacion");
             break;
 
             case Choice.No:
             clearTimeout(time);
-            session.endConversation("Por favor valida con tu soporte que el **Número de Ticket** sea correcto");
+            session.endConversation("De acuerdo, hemos terminado por ahora.");
             break;
         }
         
     },
+
     function (session, results) {
         // Cuarto diálogo
         var selection3 = results.response.entity;
         switch (selection3) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS, Opts.Ubicacion], { listStyle: builder.ListStyle.button });  
+            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS], { listStyle: builder.ListStyle.button });  
             break;
 
             case Choice.No:
@@ -365,9 +370,7 @@ bot.dialog('/', [
                 builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.HS}**`);
             break;
             
-            case Opts.Ubicacion:
-                session.beginDialog('ubicacion');
-            break;
+            
         }
         
     },
@@ -568,9 +571,11 @@ bot.dialog('ubicacion', [
     function (session, results) {
         if (results.response) {
             var place = results.response;
-            clearTimeout(time);
+            // clearTimeout(time);
 			var formattedAddress = 
-            session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+            session.send("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+            builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+
         }
     }
 ]
@@ -578,5 +583,7 @@ bot.dialog('ubicacion', [
 
 function getFormattedAddressFromPlace(place, separator) {
     var addressParts = [place.streetAddress, place.locality, place.region, place.postalCode, place.country];
+    console.log(place);
+    
     return addressParts.filter(i => i).join(separator);
 }
