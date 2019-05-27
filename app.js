@@ -52,7 +52,8 @@ var Opts = {
     Check: 'Check',
     Borrado: 'Borrado',
     Baja: 'Baja',
-    HS: 'HojadeServicio'
+    HS: 'HojadeServicio',
+    Ubicacion: 'Ubicacion',
  };
  
  var time;
@@ -305,35 +306,29 @@ bot.dialog('/', [
             session.endDialog("**Error: Los datos son incorrectos, intentalo nuevamente.**");
         });
     },
-
-function (session, results) {
-    builder.Prompts.choice(session, '¿Deseas compartir tu ubicación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
-},
-
     function (session, results) {
         // Cuarto diálogo
         var selection = results.response.entity;
         switch (selection) {
             
             case Choice.Si:
-                session.beginDialog("ubicacion");
+            builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
             break;
 
             case Choice.No:
             clearTimeout(time);
-            session.endConversation("De acuerdo, hemos terminado por ahora.");
+            session.endConversation("Por favor valida con tu soporte que el **Número de Ticket** sea correcto");
             break;
         }
         
     },
-
     function (session, results) {
         // Cuarto diálogo
         var selection3 = results.response.entity;
         switch (selection3) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS], { listStyle: builder.ListStyle.button });  
+            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS, Opts.Ubicacion], { listStyle: builder.ListStyle.button });  
             break;
 
             case Choice.No:
@@ -370,7 +365,9 @@ function (session, results) {
                 builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.HS}**`);
             break;
             
-            
+            case Opts.Ubicacion:
+                session.beginDialog('ubicacion');
+            break;
         }
         
     },
@@ -402,7 +399,7 @@ function (session, results) {
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
-                        session.send(`El archivo **${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                        session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
                         builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
 
                         }).catch((error)=>{
@@ -429,7 +426,7 @@ function (session, results) {
         switch (selection3) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja], { listStyle: builder.ListStyle.button });  
+            builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS, Opts.Ubicacion], { listStyle: builder.ListStyle.button });  
             break;
 
             case Choice.No:
@@ -447,44 +444,27 @@ function (session, results) {
         switch (selection2) {
 
             case Opts.Resguardo:
-            function appendResguardo() {
-                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
-                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
-                Discriptor.Resguardo = {'_': 'Resguardo Adjunto', '$':'Edm.String'};
-            };
-            appendResguardo();
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Resguardo}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Resguardo}**`);
             break;
 
             case Opts.Borrado:
-            function appendBorrado() {
-                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
-                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
-                Discriptor.Borrado = {'_': 'Borrado Adjunto', '$':'Edm.String'};
-            };
-            appendBorrado();
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Borrado}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Borrado}**`);
             break;
 
             case Opts.Baja:
-            function appendBaja() {
-                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
-                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
-                Discriptor.Baja = {'_': 'Baja Adjunto', '$':'Edm.String'};
-            };
-            appendBaja();
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Baja}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Baja}**`);
             break;
 
             case Opts.Check:
-            function appendCheck() {
-                Discriptor.PartitionKey = {'_': session.dialogData.asociado, '$':'Edm.String'};
-                Discriptor.RowKey = {'_': session.dialogData.serie, '$':'Edm.String'};
-                Discriptor.Check = {'_': 'Check Adjunto', '$':'Edm.String'};
-                
-            };
-            appendCheck();
-            builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Check}**`);
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.Check}**`);
+            break;
+            
+            case Opts.HS:
+                builder.Prompts.attachment(session, `**Adjunta aquí ${Opts.HS}**`);
+            break;
+            
+            case Opts.Ubicacion:
+                session.beginDialog('ubicacion');
             break;
         }
         
@@ -518,7 +498,7 @@ function (session, results) {
                             {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
-                        session.send(`El archivo **${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                        session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
                         session.endConversation('Hemos terminado por ahora. \n Saludos. ');
                         clearTimeout(time);
                         }).catch((error)=>{
@@ -571,11 +551,9 @@ bot.dialog('ubicacion', [
     function (session, results) {
         if (results.response) {
             var place = results.response;
-            // clearTimeout(time);
+            clearTimeout(time);
 			var formattedAddress = 
-            session.send("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
-            builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
-
+            session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
         }
     }
 ]
@@ -583,7 +561,5 @@ bot.dialog('ubicacion', [
 
 function getFormattedAddressFromPlace(place, separator) {
     var addressParts = [place.streetAddress, place.locality, place.region, place.postalCode, place.country];
-    console.log(place);
-    
     return addressParts.filter(i => i).join(separator);
 }
