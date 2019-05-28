@@ -143,8 +143,8 @@ bot.dialog('/', [
         session.dialogData.sysID = '';
         axios.get(
 
-            config.url+ "/v2/table/incident?number=" + session.dialogData.ticket,
-            {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+            config.url+ "/table/incident?number=" + session.dialogData.ticket,
+            {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
         
         ).then((data)=>{
         
@@ -156,7 +156,7 @@ bot.dialog('/', [
             //console.log(" Título:", data.data.result );
             axios.get(
                 config.url + "/attachment?sysparm_query=table_sys_id=" + session.dialogData.sysID + "&sysparm_limit=10",       
-                 {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+                 {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
             ).then((data1)=>{
                 //Devuelve el número de archivos adjuntos 
                 var xcount = data1.headers["x-total-count"];
@@ -164,8 +164,8 @@ bot.dialog('/', [
                 
                 
                 axios.get(
-                    config.url+"/v2/table/core_company/" + result.company.value,
-                    {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+                    config.url+"/table/core_company/" + result.company.value,
+                    {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
                 
                 ).then((core)=>{
                     var company = core.data.result.name;
@@ -392,11 +392,11 @@ bot.dialog('/', [
                 .then(
                     (response) => {
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
-                        var buffer = new Buffer(response, 'base64');
+                        var buffer = Buffer.from(response, 'base64');
                         axios.post(
                             config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
                             buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
                         session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
@@ -491,11 +491,11 @@ bot.dialog('/', [
                 .then(
                     (response) => {
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
-                        var buffer = new Buffer(response, 'base64');
+                        var buffer = Buffer.from(response, 'base64');
                         axios.post(
                             config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
                             buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + new Buffer(config.snaccount).toString('base64'))}}
+                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
                         ).then((data)=>{
                         console.log('done'+ data.data.result);
                         session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
