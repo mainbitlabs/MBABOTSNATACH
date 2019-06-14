@@ -464,7 +464,8 @@ bot.dialog('/', [
             break;
             
             case Opts.Ubicacion:
-                session.beginDialog('ubicacion');
+                // session.beginDialog('ubicacion');
+                session.send("[Bing](http://ww.bing.com)");
             break;
         }
         
