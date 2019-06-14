@@ -366,7 +366,8 @@ bot.dialog('/', [
             break;
             
             case Opts.Ubicacion:
-                session.beginDialog('ubicacion');
+                    session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
+                // session.beginDialog('ubicacion');
             break;
         }
         
@@ -465,7 +466,7 @@ bot.dialog('/', [
             
             case Opts.Ubicacion:
                 // session.beginDialog('ubicacion');
-                session.send("[Bing](http://ww.bing.com)");
+                session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
             break;
         }
         
