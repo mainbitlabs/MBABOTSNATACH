@@ -141,11 +141,11 @@ bot.dialog('/', [
         // Envíamos un mensaje al usuario para que espere.
         session.sendTyping();
         session.send('Estamos atendiendo tu solicitud. Por favor espera un momento...');
-        session.dialogData.ticket = results.response;
+        session.privateConversationData.ticket = results.response;
         session.dialogData.sysID = '';
         axios.get(
 
-            config.url+ "/table/incident?number=" + session.dialogData.ticket,
+            config.url+ "/table/incident?number=" + session.privateConversationData.ticket,
             {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
         
         ).then((data)=>{
@@ -220,7 +220,7 @@ bot.dialog('/', [
                                                             "height": "stretch",
                                                             "size": "Large",
                                                             "color": "Accent",
-                                                            "text": session.dialogData.ticket
+                                                            "text": session.privateConversationData.ticket
                                                         }
                                                     ],
                                                     "width": "stretch"
@@ -580,6 +580,7 @@ bot.dialog('ubicacion', [
     function (session, results) {
         if (results.response) {
             var place = results.response;
+            console.log("_Ticket_".session.privateConversationData.ticket);
 
             // console.log("_ Geo: ",place);
             // console.log("_ Latitud: ",place.geo.latitude);
