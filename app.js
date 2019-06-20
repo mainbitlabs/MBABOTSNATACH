@@ -580,7 +580,7 @@ bot.dialog('ubicacion', [
     function (session, results) {
         if (results.response) {
             var place = results.response;
-            console.log("_Ticket_".session.privateConversationData.ticket);
+            console.log("_Ticket_", session.privateConversationData.ticket);
 
             // console.log("_ Geo: ",place);
             // console.log("_ Latitud: ",place.geo.latitude);
