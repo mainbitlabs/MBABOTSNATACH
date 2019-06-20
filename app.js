@@ -10,6 +10,8 @@ var image2base64 = require('image-to-base64');
 var axios = require('axios');
 var botbuilder_azure = require("botbuilder-azure");
 var locationDialog = require('botbuilder-location');
+var tableService = azurest.createTableService(config.storageA, config.accessK);
+var blobService = azurest.createBlobService(config.storageA,config.accessK);
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -394,17 +396,30 @@ bot.dialog('/', [
                     (response) => {
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = Buffer.from(response, 'base64');
-                        axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
-                            buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
-                        ).then((data)=>{
-                        console.log('done'+ data.data.result);
-                        session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
-                        builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
-
-                        }).catch((error)=>{
-                            console.log("error",error.toString());
+                        // Attachment to Blob Storage
+                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.dialogData.tipo+'.'+ctype, buffer,  function(error, result, response) {
+                            if (!error) {
+                               
+                               
+                                // Attachment to ServiceNow
+                                axios.post(
+                                    config.attachUrl + session.dialogData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
+                                    buffer,
+                                    {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
+                                ).then((data)=>{
+                                console.log('done'+ data.data.result);
+                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                                builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+                                // SEND EMAIL
+                                
+                                }).catch((error)=>{
+                                    console.log("error",error.toString());
+                                });
+                            }
+                            else{
+                                console.log('Hubo un error: '+ error);
+                                
+                            }
                         });
                     }
                 )
@@ -494,17 +509,29 @@ bot.dialog('/', [
                     (response) => {
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = Buffer.from(response, 'base64');
-                        axios.post(
-                            config.attachUrl + session.dialogData.sysID + '&file_name=' + session.dialogData.company + '_' + session.dialogData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
-                            buffer,
-                            {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
-                        ).then((data)=>{
-                        console.log('done'+ data.data.result);
-                        session.send(`El archivo **${session.dialogData.company}_${session.dialogData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
-                        session.endConversation('Hemos terminado por ahora. \n Saludos. ');
-                        clearTimeout(time);
-                        }).catch((error)=>{
-                            console.log("error",error.toString());
+                        // Attachment to BlobStorage
+                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.dialogData.tipo+'.'+ctype, buffer,  function(error, result, response) {
+                            if (!error) {
+                               
+                               
+                                // Attachment to ServiceNow
+                                axios.post(
+                                    config.attachUrl + session.dialogData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
+                                    buffer,
+                                    {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
+                                ).then((data)=>{
+                                console.log('done'+ data.data.result);
+                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                                session.endConversation('Hemos terminado por ahora. \n Saludos. ');
+                                
+                                }).catch((error)=>{
+                                    console.log("error",error.toString());
+                                });
+                            }
+                            else{
+                                console.log('Hubo un error: '+ error);
+                                
+                            }
                         });
                     }
                 )
@@ -553,9 +580,39 @@ bot.dialog('ubicacion', [
     function (session, results) {
         if (results.response) {
             var place = results.response;
-            clearTimeout(time);
-			var formattedAddress = 
-            session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+
+            // console.log("_ Geo: ",place);
+            // console.log("_ Latitud: ",place.geo.latitude);
+            // console.log("_ Longitud: ",place.geo.longitude);
+            // console.log("_ Ticket: ",session.privateConversationData.ticket);
+            // console.log("_ Proyecto: ",session.privateConversationData.company);
+            var d = new Date();
+            var m = d.getMonth() + 1;
+            var c = d.getFullYear()+"-" +m+"-"+ d.getDate()+"-"+ d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
+            var descriptor = {
+                PartitionKey: {'_': place.region, '$':'Edm.String'},
+                RowKey: {'_': session.privateConversationData.ticket+"_"+c, '$':'Edm.String'},
+                Direccion: {'_': place.name, '$':'Edm.String'},
+                Latitud: {'_': place.geo.latitude, '$':'Edm.String'},
+                Longitud: {'_': place.geo.longitude, '$':'Edm.String'},
+                Proyecto: {'_': session.privateConversationData.company, '$':'Edm.String'}
+            };
+            tableService.insertEntity(config.table1, descriptor, function(error, result, response) {
+                if (!error) {
+                    console.log(result, response);
+                    
+                    clearTimeout(time);
+                    
+                    session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+                }else{
+                    console.log(error);
+                    
+                }
+            })
+
+            // clearTimeout(time);
+			// var formattedAddress = 
+            // session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
         }
     }
 ]
