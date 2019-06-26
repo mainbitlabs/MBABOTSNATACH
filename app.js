@@ -367,7 +367,7 @@ bot.dialog('/', [
             
             case Opts.Ubicacion:
                     // session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
-                session.beginDialog('ubicacion');
+                session.beginDialog('location');
             break;
         }
         
@@ -531,6 +531,20 @@ bot.dialog('cancel',
     }
 ).triggerAction(
     {matches: /(cancel|cancelar)/gi}
+);
+bot.dialog('location', [
+    function (session, results) {
+        
+        builder.prompts.text(session, "Comparte tu ubicación actual");
+       
+    },
+    function (session, results) {
+        if (results.response) {
+            console.log("_ >>> Location Results <<< _",results);
+            session.endConversation("Gracias, hemos terminado por ahora.");
+        }
+    }
+]
 );
 bot.dialog('ubicacion', [
     function (session) {
