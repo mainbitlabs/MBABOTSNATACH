@@ -621,9 +621,6 @@ bot.dialog('ubicacion', [
 
 bot.dialog("location", [
     function (session, results) {
-        session.send("Comparte tu ubicación actual.");
-    },
-    function (session, results) {
         // Sexto diálogo
             
             if (results.response) {
