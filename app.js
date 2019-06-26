@@ -369,6 +369,7 @@ bot.dialog('/', [
             
             case Opts.Ubicacion:
                     // session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
+                    session.send("Comparte tu ubicación actual");
                 session.beginDialog('location');
             break;
         }
@@ -625,7 +626,7 @@ bot.dialog("location", [
             
             
              
-             console.log("<<< Location response >>>", session.message);
+             console.log("<<< Location response >>>", session.message.entities);
              
             
         }
