@@ -621,15 +621,15 @@ bot.dialog('ubicacion', [
 
 bot.dialog("location", [
     function (session, results) {
-        builder.Prompts.attachment(session, "Comparte tu ubicación actual.");
+        session.send("Comparte tu ubicación actual.");
     },
-    function (session) {
+    function (session, results) {
         // Sexto diálogo
-            var msg = session.message;
-            if (msg.attachments && msg.attachments.length > 0) {
+            
+            if (results.response) {
              // Echo back attachment
-             var attachment = msg.attachments[0];
-             console.log("<<< Location response >>>", msg.attachments);
+             
+             console.log("<<< Location response >>>", results);
              
             }else {
                 // Echo back users text
