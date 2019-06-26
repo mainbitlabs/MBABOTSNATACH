@@ -621,15 +621,22 @@ bot.dialog('ubicacion', [
 
 bot.dialog("location", [
     function (session, results) {
-        builder.Prompts.text(session, "Comparte tu ubicación actual.");
+        builder.Prompts.attachment(session, "Comparte tu ubicación actual.");
     },
-    function (session, results) {
-        if (results.response) {
-            console.log("_ <<< Location Response >>> _", results.response);
-            clearTimeout(time);
-            session.endConversation("Gracias, hemos terminado por ahora.")
+    function (session) {
+        // Sexto diálogo
+            var msg = session.message;
+            if (msg.attachments && msg.attachments.length > 0) {
+             // Echo back attachment
+             var attachment = msg.attachments[0];
+             console.log("<<< Location response >>>", msg.attachments);
+             
+            }else {
+                // Echo back users text
+                session.send("Has dicho: %s", session.message.text);
+                
+            }
         }
-    }
     
 ]);
 function getFormattedAddressFromPlace(place, separator) {
