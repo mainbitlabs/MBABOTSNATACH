@@ -369,7 +369,7 @@ bot.dialog('/', [
             
             case Opts.Ubicacion:
                     // session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
-                session.beginDialog('ubicacion');
+                session.beginDialog('location');
             break;
         }
         
@@ -619,6 +619,19 @@ bot.dialog('ubicacion', [
 ]
 );
 
+bot.dialog("location", [
+    function (session, results) {
+        builder.Prompts.text(session, "Comparte tu ubicación actual.");
+    },
+    function (session, results) {
+        if (results.response) {
+            console.log("_ <<< Location Response >>> _", results.response);
+            clearTimeout(time);
+            session.endConversation("Gracias, hemos terminado por ahora.")
+        }
+    }
+    
+]);
 function getFormattedAddressFromPlace(place, separator) {
     var addressParts = [place.streetAddress, place.locality, place.region, place.postalCode, place.country];
     return addressParts.filter(i => i).join(separator);
