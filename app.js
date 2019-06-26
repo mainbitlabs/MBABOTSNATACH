@@ -589,8 +589,7 @@ bot.dialog('ubicacion', [
             // console.log("_ Proyecto: ",session.privateConversationData.company);
             var d = new Date();
             var m = d.getMonth() + 1;
-            var h = d.getHours();
-            var c = d.getFullYear() + "-" + m + "-" + d.getDate() + "- "+ h + ":" + d.getMinutes() + ":" + d.getSeconds();
+            var c = d.getFullYear()+"-" +m+"-"+ d.getDate()+"-"+ d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
             var descriptor = {
                 PartitionKey: {'_': place.region, '$':'Edm.String'},
                 RowKey: {'_': session.privateConversationData.ticket+"_"+c, '$':'Edm.String'},
