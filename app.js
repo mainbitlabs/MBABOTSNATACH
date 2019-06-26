@@ -620,19 +620,14 @@ bot.dialog('ubicacion', [
 );
 
 bot.dialog("location", [
-    function (session, results) {
+    function (session) {
         // Sexto diálogo
             
-            if (results.response) {
-             // Echo back attachment
+            
              
-             console.log("<<< Location response >>>", results);
+             console.log("<<< Location response >>>", session.message);
              
-            }else {
-                // Echo back users text
-                session.send("Has dicho: %s", session.message.text);
-                
-            }
+            
         }
     
 ]);
