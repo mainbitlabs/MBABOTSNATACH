@@ -626,7 +626,9 @@ bot.dialog("location", [
             
             
              
-             console.log("<<< Location response >>>", session.message.entities);
+             console.log("<<< Entities >>>", session.message.entities);
+             console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
+             console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
              
             
         }
