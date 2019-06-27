@@ -621,16 +621,18 @@ bot.dialog('ubicacion', [
 );
 
 bot.dialog("location", [
-    function (session) {
+    function (session, next) {
         // Sexto diálogo
-            
-            
-             
-             console.log("<<< Entities >>>", session.message.entities);
-             console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
-             console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
-             
-            
+       if (session.message.entities.length >= 100) { 
+           console.log("<<< Imposible >>>", session.message.entities);
+       } else {
+           next();
+       }
+    },
+    function (session) {
+        console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
+        console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
+
         }
     
 ]);
