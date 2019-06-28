@@ -657,24 +657,20 @@ bot.dialog("location", [
                             tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
                                 if (!err) {
                                    console.log("Merge Entity Historico");
+                                   clearTimeout(time);
+                                   session.endConversation("Gracias, tu ubicación ha sido registrada.");
                                 }
                                 else{err} 
                             });
 
                         } else {
+                            console.log(error);
                             
                         }
                     }
                     
                     );
                     
-
-                    tableService.mergeEntity
-                    console.log(result, response);
-                    
-                    clearTimeout(time);
-                    
-                    session.endConversation("Gracias, tu ubicación ha sido registrada.");
                 }else{
                     console.log(error);
                     
