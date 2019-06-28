@@ -174,6 +174,7 @@ bot.dialog('/', [
             session.dialogData.company = company;
                 // CODE GOES HERE
                     console.log("core_company: "+ company);
+                    console.log("typeof_company: "+ typeof(company));
                     console.log("data: "+ result.subcategory);
                     var info = new builder.Message(session)
                     .addAttachment({
@@ -625,6 +626,8 @@ bot.dialog("location", [
        
        if (session.message.text == "") { 
         //    console.log("<<< Imposible >>>", session.message.entities);
+        console.log("<<< core_company: "+ company);
+        console.log("<<< typeof_company: "+ typeof(company));
            console.log("<<< Session.message >>>", session.message);
            console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
            console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
@@ -638,7 +641,7 @@ bot.dialog("location", [
                 Latitud: {'_': session.message.entities[0].geo.latitude, '$':'Edm.String'},
                 Longitud: {'_': session.message.entities[0].geo.longitude, '$':'Edm.String'},
                 Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
-                Url: {'_': "https://www.google.com.mx/maps/search/ "+ session.message.entities[0].geo.latitude + "," + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+                Url: {'_': 'https://www.google.com.mx/maps/search/ '+ session.message.entities[0].geo.latitude + "," + session.message.entities[0].geo.longitude, '$':'Edm.String'},
             };
             tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
                 if (!error) {
