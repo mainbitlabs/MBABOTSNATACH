@@ -645,31 +645,38 @@ bot.dialog("location", [
             };
             tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
                 if (!error) {
-
-                    tableService.retrieveEntity(config.table1, session.privateConversationData.company, session.privateConversationData.ticket, function(error, result, response) {
-                        if (!error) {
-                            var historico = result.Historico._;
-                            var merge = {
-                                PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
-                                RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
-                                Historico: {'_': historico + "\n" + fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
-                            };
-                            tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
-                                if (!err) {
-                                   console.log("Merge Entity Historico");
-                                   clearTimeout(time);
-                                   session.endConversation("Gracias, tu ubicación ha sido registrada.");
-                                }
-                                else{err} 
-                            });
-
-                        } else {
-                            console.log(error);
-                            
-                        }
+setTimeout(() => {
+    
+    tableService.retrieveEntity(config.table1, session.privateConversationData.company, session.privateConversationData.ticket, function(error, result, response) {
+        if (!error) {
+            var historico = result.Historico._;
+            var merge = {
+                PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
+                RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                Historico: {'_': historico + "\n" + fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+            };
+            setTimeout(() => {
+                
+                tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
+                    if (!err) {
+                       console.log("Merge Entity Historico");
+                       clearTimeout(time);
+                       session.endConversation("Gracias, tu ubicación ha sido registrada.");
                     }
-                    
-                    );
+                    else{err} 
+                });
+                
+            }, 2000);
+    
+        } else {
+            console.log(error);
+            
+        }
+    }
+    
+    );
+}, 2000);
+
                     
                 }else{
                     console.log(error);
