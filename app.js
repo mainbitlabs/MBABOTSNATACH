@@ -171,7 +171,7 @@ bot.dialog('/', [
                 
                 ).then((core)=>{
                     var company = core.data.result.name;
-            session.dialogData.company = company;
+            session.privateConversationData.company = company;
                 // CODE GOES HERE
                     console.log("core_company: "+ company);
                     console.log("typeof_company: "+ typeof(company));
