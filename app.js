@@ -645,8 +645,13 @@ bot.dialog("location", [
             };
             tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
                 if (!error) {
-
-                    tableService.mergeEntity(config.table1, descriptor.Historico, function(err, res, respons) {
+                    
+                    var merge = {
+                        PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
+                        RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                        Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude+"\n", '$':'Edm.String'},
+                    };
+                    tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
                         if (!err) {
                            console.log("Merge Entity Historico");
                            
