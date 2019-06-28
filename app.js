@@ -645,19 +645,29 @@ bot.dialog("location", [
             };
             tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
                 if (!error) {
-                    
-                    var merge = {
-                        PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
-                        RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
-                        Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude+"\n", '$':'Edm.String'},
-                    };
-                    tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
-                        if (!err) {
-                           console.log("Merge Entity Historico");
-                           
+
+                    tableService.retrieveEntity(config.table1, session.privateConversationData.company, session.privateConversationData.ticket, function(error, result, response) {
+                        if (!error) {
+                            var historico = result.Historico._;
+                            var merge = {
+                                PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
+                                RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                                Historico: {'_': historico + "\n" + fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+                            };
+                            tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
+                                if (!err) {
+                                   console.log("Merge Entity Historico");
+                                }
+                                else{err} 
+                            });
+
+                        } else {
+                            
                         }
-                        else{err} 
-                    });
+                    }
+                    
+                    );
+                    
 
                     tableService.mergeEntity
                     console.log(result, response);
