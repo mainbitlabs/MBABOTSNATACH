@@ -134,7 +134,7 @@ bot.dialog('/', [
     builder.Prompts.text(session, '¿Cuál es el número de ticket de **ServiceNow** que deseas revisar?');
         time = setTimeout(() => {
             session.endConversation(`**Lo sentimos ha transcurrido el tiempo estimado para completar esta actividad. Intentalo nuevamente.**`);
-        }, 300000);
+        }, 600000);
     },
     
     function (session, results) {
@@ -656,7 +656,7 @@ setTimeout(() => {
                 Historico: {'_': historico + "\n" + fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
             };
             setTimeout(() => {
-                
+
                 tableService.mergeEntity(config.table1, merge, function(err, res, respons) {
                     if (!err) {
                        console.log("Merge Entity Historico");
