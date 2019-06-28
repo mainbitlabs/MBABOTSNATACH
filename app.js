@@ -611,7 +611,7 @@ bot.dialog('ubicacion', [
                     console.log(error);
                     
                 }
-            })
+            });
 
             // clearTimeout(time);
 			// var formattedAddress = 
@@ -640,11 +640,21 @@ bot.dialog("location", [
                 Fecha: {'_': fecha, '$':'Edm.String'},
                 Latitud: {'_': session.message.entities[0].geo.latitude, '$':'Edm.String'},
                 Longitud: {'_': session.message.entities[0].geo.longitude, '$':'Edm.String'},
-                Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+                Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude+"\n", '$':'Edm.String'},
                 Url: {'_': 'https://www.google.com.mx/maps/search/ '+ session.message.entities[0].geo.latitude + "," + session.message.entities[0].geo.longitude, '$':'Edm.String'},
             };
             tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
                 if (!error) {
+
+                    tableService.mergeEntity(config.table1, descriptor.Historico, function(err, res, respons) {
+                        if (!err) {
+                           console.log("Merge Entity Historico");
+                           
+                        }
+                        else{err} 
+                    });
+
+                    tableService.mergeEntity
                     console.log(result, response);
                     
                     clearTimeout(time);
