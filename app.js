@@ -624,9 +624,35 @@ bot.dialog("location", [
     function (session) {
        
        if (session.message.text == "") { 
-           console.log("<<< Imposible >>>", session.message.entities);
+        //    console.log("<<< Imposible >>>", session.message.entities);
+           console.log("<<< Session.message >>>", session.message);
            console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
            console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
+           var d = new Date();
+            var m = d.getMonth() + 1;
+            var fecha = d.getFullYear() + "-" + m + "-" + d.getDate() + "-" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+            var descriptor = {
+                PartitionKey: {'_': session.privateConversationData.company, '$':'Edm.String'},
+                RowKey: {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                Fecha: {'_': fecha, '$':'Edm.String'},
+                Latitud: {'_': session.message.entities[0].geo.latitude, '$':'Edm.String'},
+                Longitud: {'_': session.message.entities[0].geo.longitude, '$':'Edm.String'},
+                Historico: {'_': fecha +" "+ session.message.entities[0].geo.latitude + " " + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+                Url: {'_': "https://www.google.com.mx/maps/search/ "+ session.message.entities[0].geo.latitude + "," + session.message.entities[0].geo.longitude, '$':'Edm.String'},
+            };
+            tableService.insertOrMergeEntity(config.table1, descriptor, function(error, result, response) {
+                if (!error) {
+                    console.log(result, response);
+                    
+                    clearTimeout(time);
+                    
+                    session.endConversation("Gracias, tu ubicación ha sido registrada.");
+                }else{
+                    console.log(error);
+                    
+                }
+            });
+            
        } 
     }
     
