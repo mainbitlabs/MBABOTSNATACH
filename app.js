@@ -626,8 +626,8 @@ bot.dialog("location", [
        
        if (session.message.text == "") { 
         //    console.log("<<< Imposible >>>", session.message.entities);
-        console.log("<<< core_company: "+ company);
-        console.log("<<< typeof_company: "+ typeof(company));
+        console.log("<<< core_company: "+ session.privateConversationData.company);
+        console.log("<<< typeof_company: "+ typeof(session.privateConversationData.company));
            console.log("<<< Session.message >>>", session.message);
            console.log("<<< Latitude >>>", session.message.entities[0].geo.latitude);
            console.log("<<< Longitude >>>", session.message.entities[0].geo.longitude);
