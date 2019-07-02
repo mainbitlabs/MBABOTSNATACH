@@ -55,7 +55,7 @@ var Opts = {
     Borrado: 'Borrado',
     Baja: 'Baja',
     HS: 'HojadeServicio',
-    Ubicacion: 'Ubicacion',
+    Ubicacion: 'Reportar llegada a Sitio',
  };
  
  var time;
