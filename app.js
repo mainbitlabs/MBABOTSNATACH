@@ -524,6 +524,7 @@ bot.dialog('/', [
                                 ).then((data)=>{
                                 console.log('done'+ data.data.result);
                                 session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                                clearTimeout(time);
                                 session.endConversation('Hemos terminado por ahora. \n Saludos. ');
                                 
                                 }).catch((error)=>{
