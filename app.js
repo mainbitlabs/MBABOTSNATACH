@@ -48,7 +48,10 @@ var Choice = {
     Si: 'Sí',
     No: 'No'
  };
-
+ var Docs = {
+    Evidencia: 'Adjuntar Documentación',
+    Incidente: 'Reportar Incidente'
+ };
 var Opts = {
     Resguardo : 'Resguardo',
     Check: 'Check',
@@ -57,7 +60,13 @@ var Opts = {
     HS: 'HojadeServicio',
     Ubicacion: 'Reportar llegada a Sitio',
  };
- 
+ var Motivos = {
+    Uno: 'Usuario',
+    Dos: 'Documentos',
+    Tres: 'Infraestructura',
+    Cuatro: 'Equipo',
+    Cinco: 'Servicio',
+ };
  var time;
 
 
@@ -142,7 +151,7 @@ bot.dialog('/', [
         session.sendTyping();
         session.send('Estamos atendiendo tu solicitud. Por favor espera un momento...');
         session.privateConversationData.ticket = results.response;
-        session.dialogData.sysID = '';
+        session.privateConversationData.sysID = '';
         axios.get(
 
             config.url+ "/table/incident?number=" + session.privateConversationData.ticket,
@@ -152,12 +161,12 @@ bot.dialog('/', [
         
         
             var result = data.data.result[0];
-            console.log(result);
+            // console.log(result);
             
-            session.dialogData.sysID = data.data.result[0].sys_id;
+            session.privateConversationData.sysID = data.data.result[0].sys_id;
             //console.log(" Título:", data.data.result );
             axios.get(
-                config.url + "/attachment?sysparm_query=table_sys_id=" + session.dialogData.sysID + "&sysparm_limit=10",       
+                config.url + "/attachment?sysparm_query=table_sys_id=" + session.privateConversationData.sysID + "&sysparm_limit=10",       
                  {headers:{"Accept":"application/json","Content-Type":"application/json","Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
             ).then((data1)=>{
                 //Devuelve el número de archivos adjuntos 
@@ -172,6 +181,7 @@ bot.dialog('/', [
                 ).then((core)=>{
                     var company = core.data.result.name;
             session.privateConversationData.company = company;
+            session.privateConversationData.titulo = result.subcategory;
                 // CODE GOES HERE
                     console.log("core_company: "+ company);
                     console.log("typeof_company: "+ typeof(company));
@@ -315,7 +325,20 @@ bot.dialog('/', [
         switch (selection) {
             
             case Choice.Si:
-            builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
+            builder.Prompts.choice(session, '¿Qué deseas realizar?', [Docs.Evidencia, Docs.Incidente], { listStyle: builder.ListStyle.button });
+            // INSERTA O CREA UNA ENTIDAD EN AZURE STORAGE
+            
+            var insert={
+                PartitionKey : {'_': session.privateConversationData.company , '$':'Edm.String'},
+                RowKey : {'_':session.privateConversationData.ticket, '$':'Edm.String'}
+            };
+
+            tableService.insertOrMergeEntity(config.table1, insert, function (error, result, response) {
+                if (!error) {
+                    console.log("Entidad creada en Azure Storage");
+                    
+                }
+            });
             break;
 
             case Choice.No:
@@ -325,27 +348,27 @@ bot.dialog('/', [
         }
         
     },
+   
     function (session, results) {
         // Cuarto diálogo
         var selection3 = results.response.entity;
         switch (selection3) {
             
-            case Choice.Si:
+            case Docs.Evidencia:
             builder.Prompts.choice(session, '¿Que tipo de Evidencia o Documentación?', [Opts.Resguardo, Opts.Check, Opts.Borrado, Opts.Baja, Opts.HS, Opts.Ubicacion], { listStyle: builder.ListStyle.button });  
             break;
 
-            case Choice.No:
-            clearTimeout(time);
-            session.endConversation("**De acuerdo, hemos terminado por ahora**");
-            break;
+            case Docs.Incidente:
+                session.beginDialog("incidente");
+                break;
         }
         
     },
     function (session, results) {
         // Quinto diálogo
         var selection2 = results.response.entity;
-        session.dialogData.tipo = selection2;
-        session.dialogData.Discriptor ={};
+        session.privateConversationData.tipo = selection2;
+        session.privateConversationData.Discriptor ={};
         switch (selection2) {
 
             case Opts.Resguardo:
@@ -373,10 +396,41 @@ bot.dialog('/', [
                     session.send("Comparte tu ubicación actual");
                 session.beginDialog('location');
             break;
+
+            case Motivos.Uno:
+            session.privateConversationData.X = Motivos.Uno;
+             // Comentar detalles de Servicio Pospuesto
+            builder.Prompts.text(session, 'Escribe tus observaciones');
+             break;
+
+            case Motivos.Dos:
+            session.privateConversationData.X = Motivos.Dos;
+            // Comentar detalles de Servicio Pospuesto
+            builder.Prompts.text(session, 'Escribe tus observaciones');
+            break;
+            
+            case Motivos.Tres:
+            session.privateConversationData.X = Motivos.Tres;
+            // Comentar detalles de Servicio Pospuesto
+            builder.Prompts.text(session, 'Escribe tus observaciones');
+            break;
+        
+            case Motivos.Cuatro:
+            session.privateConversationData.X = Motivos.Cuatro;
+            // Comentar detalles de Servicio Pospuesto
+            builder.Prompts.text(session, 'Escribe tus observaciones');
+            break;
+            
+            case Motivos.Cinco:
+            session.privateConversationData.X = Motivos.Cinco;
+            // Comentar detalles de Servicio Pospuesto
+            builder.Prompts.text(session, 'Escribe tus observaciones');
+            break;
         }
         
     },
     function (session, results) {
+        session.privateConversationData.comentarios = results.response;
         var msg = session.message;
         if (msg.attachments && msg.attachments.length > 0) {
          // Echo back attachment
@@ -399,18 +453,18 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = Buffer.from(response, 'base64');
                         // Attachment to Blob Storage
-                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.dialogData.tipo+'.'+ctype, buffer,  function(error, result, response) {
+                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.privateConversationData.tipo+'.'+ctype, buffer,  function(error, result, response) {
                             if (!error) {
                                
                                
                                 // Attachment to ServiceNow
                                 axios.post(
-                                    config.attachUrl + session.dialogData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
+                                    config.attachUrl + session.privateConversationData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.privateConversationData.tipo +'.'+ ctype,
                                     buffer,
                                     {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
                                 ).then((data)=>{
                                 console.log('done'+ data.data.result);
-                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.privateConversationData.tipo}.${ctype}** se ha subido correctamente`);
                                 builder.Prompts.choice(session, '¿Deseas adjuntar Evidencia o Documentación?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
                                 // SEND EMAIL
                                 
@@ -433,8 +487,65 @@ bot.dialog('/', [
         
         // acaba if
          } else {
-            // Echo back users text
-            session.send("You said: %s", session.message.text);
+             var rk = session.privateConversationData.ticket;
+             var pk = session.privateConversationData.company;
+             console.log(session.privateConversationData);
+             console.log(pk, typeof(pk));
+             console.log(rk, typeof(rk));
+             
+            tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
+                if (!error) {  
+                    // Correo de notificaciones 
+                    nodeoutlook.sendEmail({
+                        auth: {
+                            user: `esanchezl@mainbit.com.mx`,
+                            pass: `Kokardo04`,
+                        }, from: `esanchezl@mainbit.com.mx`,
+                        to: `esanchezl@mainbit.com.mx `,
+                        subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
+                        html: `<p>El servicio se pospuso por el siguiente motivo:</p> <br> <b>${session.privateConversationData.X}</b> <br> <b><blockquote>${session.privateConversationData.comentarios}</blockquote></b> <br> <b>Proyecto: ${session.privateConversationData.company}</b>  <br> <b>Ticket: ${session.privateConversationData.ticket}</b> <br> <b>Titulo: ${session.privateConversationData.titulo}</b>`
+                       });
+                }
+                else{
+                    console.log("<< Error RETRIEVE ENTITY 1>>", error);
+                    
+                    clearTimeout(time);
+                    session.endConversation("**Error** La serie no coincide con el Asociado.");
+                }
+            });
+            tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
+                if (!error) {  
+                    // Comentarios
+                    var dateNow = new Date().toLocaleString();
+                        var comentarios = {
+                            PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
+                            RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                            Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios+'\n'+result.Comentarios._, '$':'Edm.String'}
+                            
+                        };
+                        
+                        tableService.mergeEntity(config.table1, comentarios, function(error, res, respons) {
+                            if (!error) {
+                                console.log(`entity property ${session.privateConversationData.tipo} updated`);
+                            comentarios = {};
+                            }
+                            else{
+                                console.log("<< Error MERGE ENTITY >>", error);
+                                clearTimeout(time);
+                                session.endConversation("**Error MERGE ENTITY.**");
+                            }
+                        });
+                   clearTimeout(time);
+                   session.endConversation("**Hemos terminado por ahora, Se enviarán tus observaciones por correo.**");
+                   
+                }
+                else{
+                    console.log("<< Error RETRIEVE ENTITY 2>>", error);
+                    clearTimeout(time);
+                    session.endConversation("**Error  RETRIEVE ENTITY 2.**");
+                    
+                }
+            });
         }
 
     },
@@ -457,8 +568,8 @@ bot.dialog('/', [
     function (session, results) {
         // Quinto diálogo
         var selection2 = results.response.entity;
-        session.dialogData.tipo = selection2;
-        session.dialogData.Discriptor ={};
+        session.privateConversationData.tipo = selection2;
+        session.privateConversationData.Discriptor ={};
         switch (selection2) {
 
             case Opts.Resguardo:
@@ -482,7 +593,7 @@ bot.dialog('/', [
             break;
             
             case Opts.Ubicacion:
-                session.beginDialog('ubicacion');
+                session.beginDialog('location');
                 // session.send("[Ubicación actual](https://mainbitlabs.github.io/)");
             break;
         }
@@ -512,18 +623,18 @@ bot.dialog('/', [
                         // console.log(response); //iVBORw0KGgoAAAANSwCAIA...
                         var buffer = Buffer.from(response, 'base64');
                         // Attachment to BlobStorage
-                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.dialogData.tipo+'.'+ctype, buffer,  function(error, result, response) {
+                        blobService.createBlockBlobFromText(config.blobcontainer, session.privateConversationData.company+'_'+session.privateConversationData.ticket+'_'+session.privateConversationData.tipo+'.'+ctype, buffer,  function(error, result, response) {
                             if (!error) {
                                
                                
                                 // Attachment to ServiceNow
                                 axios.post(
-                                    config.attachUrl + session.dialogData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.dialogData.tipo +'.'+ ctype,
+                                    config.attachUrl + session.privateConversationData.sysID + '&file_name=' + session.privateConversationData.company + '_' + session.privateConversationData.ticket + '_' + session.privateConversationData.tipo +'.'+ ctype,
                                     buffer,
                                     {headers:{"Accept":"application/json","Content-Type":attachment.contentType,"Authorization": ("Basic " + Buffer.from(config.snaccount).toString('base64'))}}
                                 ).then((data)=>{
                                 console.log('done'+ data.data.result);
-                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.dialogData.tipo}.${ctype}** se ha subido correctamente`);
+                                session.send(`El archivo **${session.privateConversationData.company}_${session.privateConversationData.ticket}_${session.privateConversationData.tipo}.${ctype}** se ha subido correctamente`);
                                 clearTimeout(time);
                                 session.endConversation('Hemos terminado por ahora. \n Saludos. ');
                                 
@@ -562,65 +673,65 @@ bot.dialog('cancel',
 ).triggerAction(
     {matches: /(cancel|cancelar)/gi}
 );
-bot.dialog('ubicacion', [
-    function (session) {
-        var options = {
-            prompt: "¿Cuál es tu ubicación? indica los siguientes datos separados por coma 'Calle y número, localidad, estado de la república' \n \n Ejemplo:\n \n 'Gabriel Mancera 1306, Colonia del Valle, Ciudad de México' ",
-            useNativeControl: true,
-            reverseGeocode: true,
-			skipFavorites: true,
-			skipConfirmationAsk: true,
-            requiredFields:
-                locationDialog.LocationRequiredFields.streetAddress |
-                locationDialog.LocationRequiredFields.locality |
-                locationDialog.LocationRequiredFields.region |
-                locationDialog.LocationRequiredFields.postalCode |
-                locationDialog.LocationRequiredFields.country
-        };
+// bot.dialog('ubicacion', [
+//     function (session) {
+//         var options = {
+//             prompt: "¿Cuál es tu ubicación? indica los siguientes datos separados por coma 'Calle y número, localidad, estado de la república' \n \n Ejemplo:\n \n 'Gabriel Mancera 1306, Colonia del Valle, Ciudad de México' ",
+//             useNativeControl: true,
+//             reverseGeocode: true,
+// 			skipFavorites: true,
+// 			skipConfirmationAsk: true,
+//             requiredFields:
+//                 locationDialog.LocationRequiredFields.streetAddress |
+//                 locationDialog.LocationRequiredFields.locality |
+//                 locationDialog.LocationRequiredFields.region |
+//                 locationDialog.LocationRequiredFields.postalCode |
+//                 locationDialog.LocationRequiredFields.country
+//         };
 
-        locationDialog.getLocation(session, options);
-    },
-    function (session, results) {
-        if (results.response) {
-            var place = results.response;
-            console.log("_Ticket_", session.privateConversationData.ticket);
+//         locationDialog.getLocation(session, options);
+//     },
+//     function (session, results) {
+//         if (results.response) {
+//             var place = results.response;
+//             console.log("_Ticket_", session.privateConversationData.ticket);
 
-            // console.log("_ Geo: ",place);
-            // console.log("_ Latitud: ",place.geo.latitude);
-            // console.log("_ Longitud: ",place.geo.longitude);
-            // console.log("_ Ticket: ",session.privateConversationData.ticket);
-            // console.log("_ Proyecto: ",session.privateConversationData.company);
-            var d = new Date();
-            var m = d.getMonth() + 1;
-            var c = d.getFullYear()+"-" +m+"-"+ d.getDate()+"-"+ d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
-            var descriptor = {
-                PartitionKey: {'_': place.region, '$':'Edm.String'},
-                RowKey: {'_': session.privateConversationData.ticket+"_"+c, '$':'Edm.String'},
-                Direccion: {'_': place.name, '$':'Edm.String'},
-                Latitud: {'_': place.geo.latitude, '$':'Edm.String'},
-                Longitud: {'_': place.geo.longitude, '$':'Edm.String'},
-                Proyecto: {'_': session.privateConversationData.company, '$':'Edm.String'}
-            };
-            tableService.insertEntity(config.table1, descriptor, function(error, result, response) {
-                if (!error) {
-                    console.log(result, response);
+//             // console.log("_ Geo: ",place);
+//             // console.log("_ Latitud: ",place.geo.latitude);
+//             // console.log("_ Longitud: ",place.geo.longitude);
+//             // console.log("_ Ticket: ",session.privateConversationData.ticket);
+//             // console.log("_ Proyecto: ",session.privateConversationData.company);
+//             var d = new Date();
+//             var m = d.getMonth() + 1;
+//             var c = d.getFullYear()+"-" +m+"-"+ d.getDate()+"-"+ d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
+//             var descriptor = {
+//                 PartitionKey: {'_': place.region, '$':'Edm.String'},
+//                 RowKey: {'_': session.privateConversationData.ticket+"_"+c, '$':'Edm.String'},
+//                 Direccion: {'_': place.name, '$':'Edm.String'},
+//                 Latitud: {'_': place.geo.latitude, '$':'Edm.String'},
+//                 Longitud: {'_': place.geo.longitude, '$':'Edm.String'},
+//                 Proyecto: {'_': session.privateConversationData.company, '$':'Edm.String'}
+//             };
+//             tableService.insertEntity(config.table1, descriptor, function(error, result, response) {
+//                 if (!error) {
+//                     console.log(result, response);
                     
-                    clearTimeout(time);
+//                     clearTimeout(time);
                     
-                    session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
-                }else{
-                    console.log(error);
+//                     session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+//                 }else{
+//                     console.log(error);
                     
-                }
-            });
+//                 }
+//             });
 
-            // clearTimeout(time);
-			// var formattedAddress = 
-            // session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
-        }
-    }
-]
-);
+//             // clearTimeout(time);
+// 			// var formattedAddress = 
+//             // session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
+//         }
+//     }
+// ]
+// );
 
 bot.dialog("location", [
     function (session) {
@@ -693,3 +804,8 @@ function getFormattedAddressFromPlace(place, separator) {
     var addressParts = [place.streetAddress, place.locality, place.region, place.postalCode, place.country];
     return addressParts.filter(i => i).join(separator);
 }
+bot.dialog('incidente',
+    function (session, next) {
+        builder.Prompts.choice(session, `**Elije el motivo por el cual se pospone el servicio.**`,[Motivos.Uno, Motivos.Dos, Motivos.Tres, Motivos.Cuatro, Motivos.Cinco], { listStyle: builder.ListStyle.button });
+    }
+ );
