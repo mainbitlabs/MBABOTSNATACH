@@ -331,7 +331,8 @@ bot.dialog('/', [
             
             var insert={
                 PartitionKey : {'_': session.privateConversationData.company , '$':'Edm.String'},
-                RowKey : {'_':session.privateConversationData.ticket, '$':'Edm.String'}
+                RowKey : {'_':session.privateConversationData.ticket, '$':'Edm.String'},
+                Comentarios : {'_': "", '$':'Edm.String'}
             };
 
             tableService.insertOrMergeEntity(config.table1, insert, function (error, result, response) {
