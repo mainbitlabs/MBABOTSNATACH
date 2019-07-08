@@ -504,7 +504,7 @@ bot.dialog('/', [
                         }, from: `esanchezl@mainbit.com.mx`,
                         to: `esanchezl@mainbit.com.mx `,
                         subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
-                        html: `<p>El servicio se pospuso por el siguiente motivo:</p> <br> <b>${session.privateConversationData.X}</b> <br> <b><blockquote>${session.privateConversationData.comentarios}</blockquote></b> <br> <b>Proyecto: ${session.privateConversationData.company}</b>  <br> <b>Ticket: ${session.privateConversationData.ticket}</b> <br> <b>Titulo: ${session.privateConversationData.titulo}</b>`
+                        html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
                        });
                 }
                 else{
