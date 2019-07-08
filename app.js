@@ -495,8 +495,8 @@ bot.dialog('/', [
              console.log(pk, typeof(pk));
              console.log(rk, typeof(rk));
              
-             tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
-                 if (!error) {  
+            tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
+                if (!error) {  
                     console.log(" >> MAILER",session.privateConversationData);
                     // Correo de notificaciones 
                     nodeoutlook.sendEmail({
@@ -508,16 +508,6 @@ bot.dialog('/', [
                         subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
                         html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
                     });
-                }
-                else{
-                    console.log("<< Error RETRIEVE ENTITY 1>>", error);
-                    
-                    clearTimeout(time);
-                    session.endConversation("**Error** La serie no coincide con el Asociado.");
-                }
-            });
-            tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
-                if (!error) {  
                     // Comentarios
                     console.log(" >> MERGE",session.privateConversationData);
                     var dateNow = new Date().toLocaleString();
