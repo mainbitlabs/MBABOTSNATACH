@@ -494,8 +494,9 @@ bot.dialog('/', [
              console.log(pk, typeof(pk));
              console.log(rk, typeof(rk));
              
-            tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
-                if (!error) {  
+             tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
+                 if (!error) {  
+                    console.log(" >> MAILER",session.privateConversationData);
                     // Correo de notificaciones 
                     nodeoutlook.sendEmail({
                         auth: {
@@ -505,7 +506,7 @@ bot.dialog('/', [
                         to: `esanchezl@mainbit.com.mx `,
                         subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
                         html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
-                       });
+                    });
                 }
                 else{
                     console.log("<< Error RETRIEVE ENTITY 1>>", error);
@@ -517,13 +518,14 @@ bot.dialog('/', [
             tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
                 if (!error) {  
                     // Comentarios
+                    console.log(" >> MERGE",session.privateConversationData);
                     var dateNow = new Date().toLocaleString();
-                        var comentarios = {
-                            PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
-                            RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
-                            Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios+'\n'+result.Comentarios._, '$':'Edm.String'}
-                            
-                        };
+                    var comentarios = {
+                        PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
+                        RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                        Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios+'\n'+result.Comentarios._, '$':'Edm.String'}
+                        
+                    };
                         
                         tableService.mergeEntity(config.table1, comentarios, function(error, res, respons) {
                             if (!error) {
