@@ -7,6 +7,7 @@ var builder = require('botbuilder');
 var config = require('./config');
 var azurest = require('azure-storage');
 var image2base64 = require('image-to-base64');
+var nodeoutlook = require('nodejs-nodemailer-outlook');
 var axios = require('axios');
 var botbuilder_azure = require("botbuilder-azure");
 var locationDialog = require('botbuilder-location');
