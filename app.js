@@ -1,7 +1,3 @@
-/*-----------------------------------------------------------------------------
-A simple echo bot for the Microsoft Bot Framework. 
------------------------------------------------------------------------------*/
-
 var restify = require('restify');
 var builder = require('botbuilder');
 var config = require('./config');
@@ -29,12 +25,6 @@ var connector = new builder.ChatConnector({
 
 // Listen for messages from users 
 server.post('/api/messages', connector.listen());
-
-/*----------------------------------------------------------------------------------------
-* Bot Storage: This is a great spot to register the private state storage for your bot. 
-* We provide adapters for Azure Table, CosmosDb, SQL Azure, or you can implement your own!
-* For samples and documentation, see: https://github.com/Microsoft/BotBuilder-Azure
-* ---------------------------------------------------------------------------------------- */
 
 var tableName = 'botdata';
 var azureTableClient = new botbuilder_azure.AzureTableClient(tableName, process.env['AzureWebJobsStorage']);
@@ -70,14 +60,10 @@ var Opts = {
  };
  var time;
 
-
 // El díalogo principal inicia aquí
 bot.dialog('/', [
     function (session) {
-        // Primer diálogo    
-        // session.send(`Hola bienvenido al Servicio Automatizado de Mainbit.`);
-        // session.send(`**Sugerencia:** Recuerda que puedes cancelar en cualquier momento escribiendo **"cancelar".** \n\n **Importante:** este bot tiene un ciclo de vida de 5 minutos, te recomendamos concluir la actividad antes de este periodo.`);
-        
+        // Primer diálogo            
         var msg1 = new builder.Message(session)
         .addAttachment({
         contentType: "application/vnd.microsoft.card.adaptive",
@@ -148,6 +134,7 @@ bot.dialog('/', [
     },
     
     function (session, results) {
+        // Segundo diálogo
         // Envíamos un mensaje al usuario para que espere.
         session.sendTyping();
         session.send('Estamos atendiendo tu solicitud. Por favor espera un momento...');
@@ -173,7 +160,6 @@ bot.dialog('/', [
                 //Devuelve el número de archivos adjuntos 
                 var xcount = data1.headers["x-total-count"];
                 // session.send(` Título: **${result.subcategory}** \n Descripción: **${result.short_description}** \n Creado por: **${result.sys_created_by}** \n Creado el: **${result.sys_created_on}** \n Última actualización: **${result.sys_updated_on}** \n Resuelto el: **${result.resolved_at}** \n Archivos adjuntos: **${xcount}**`);
-                
                 
                 axios.get(
                     config.url+"/table/core_company/" + result.company.value,
@@ -294,11 +280,9 @@ bot.dialog('/', [
                                 session.send(info);
                                 // for (let i = 0; i < xcount; i++) {
                                 //     var element = data1.data.result[i].file_name +"\n";
-                                    
                                 //     session.send(element);
-                                    
-                                //     // devuelve los nombres de los archivos adjuntos
-                                //     // session.send(element);
+                                //     devuelve los nombres de los archivos adjuntos
+                                //     session.send(element);
                                 // }
                                 builder.Prompts.choice(session, '¿Esta información es correcta?', [Choice.Si, Choice.No], { listStyle: builder.ListStyle.button });
                                 // console.log("Attachments: ",data1.headers["x-total-count"]);
@@ -321,7 +305,7 @@ bot.dialog('/', [
         });
     },
     function (session, results) {
-        // Cuarto diálogo
+        // Tercer diálogo
         var selection = results.response.entity;
         switch (selection) {
             
@@ -331,14 +315,12 @@ bot.dialog('/', [
             
             var insert={
                 PartitionKey : {'_': session.privateConversationData.company , '$':'Edm.String'},
-                RowKey : {'_':session.privateConversationData.ticket, '$':'Edm.String'},
-                Comentarios : {'_': "", '$':'Edm.String'}
+                RowKey : {'_':session.privateConversationData.ticket, '$':'Edm.String'} 
             };
 
             tableService.insertOrMergeEntity(config.table1, insert, function (error, result, response) {
                 if (!error) {
-                    console.log("Entidad creada en Azure Storage");
-                    
+                    console.log("Entidad creada en Azure Storage"); 
                 }
             });
             break;
@@ -432,6 +414,7 @@ bot.dialog('/', [
         
     },
     function (session, results) {
+        // Sexto diálogo
         session.privateConversationData.comentarios = results.response;
         var msg = session.message;
         if (msg.attachments && msg.attachments.length > 0) {
@@ -496,55 +479,96 @@ bot.dialog('/', [
              console.log(rk, typeof(rk));
              
             tableService.retrieveEntity(config.table1, pk, rk, function(error, result, response) {
-                if (!error) {  
-                    console.log(" >> MAILER",session.privateConversationData);
-                    // Correo de notificaciones 
-                    nodeoutlook.sendEmail({
-                        auth: {
-                            user: `esanchezl@mainbit.com.mx`,
-                            pass: `Kokardo04`,
-                        }, from: `esanchezl@mainbit.com.mx`,
-                        to: `esanchezl@mainbit.com.mx `,
-                        subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
-                        html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
-                    });
-                    // Comentarios
-                    console.log(" >> MERGE",session.privateConversationData);
-                    var dateNow = new Date().toLocaleString();
-                    var comentarios = {
-                        PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
-                        RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
-                        Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios+'\n'+result.Comentarios._, '$':'Edm.String'}
-                        
-                    };
-                        
-                        tableService.mergeEntity(config.table1, comentarios, function(error, res, respons) {
-                            if (!error) {
-                                console.log(`entity property ${session.privateConversationData.tipo} updated`);
-                            comentarios = {};
-                            }
-                            else{
-                                console.log("<< Error MERGE ENTITY >>", error);
-                                clearTimeout(time);
-                                session.endConversation("**Error MERGE ENTITY.**");
-                            }
+                if (!error) {
+                    // SI COMENTARIOS NO EXISTE
+                    if (!result.Comentarios) {
+                        console.log("Comentarios No Existe");
+                        console.log(" >> MAILER",session.privateConversationData);
+                        // Correo de notificaciones 
+                        nodeoutlook.sendEmail({
+                            auth: {
+                                user: `esanchezl@mainbit.com.mx`,
+                                pass: `Kokardo04`,
+                            }, from: `esanchezl@mainbit.com.mx`,
+                            to: `esanchezl@mainbit.com.mx `,
+                            subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
+                            html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
                         });
-                   clearTimeout(time);
-                   session.endConversation("**Hemos terminado por ahora, Se enviarán tus observaciones por correo.**");
+                        // Comentarios
+                        console.log(" >> MERGE",session.privateConversationData);
+                        var dateNow = new Date().toLocaleString();
+                        var comentarios = {
+                            PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
+                            RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                            Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios, '$':'Edm.String'}
+                            
+                        };
+                            
+                            tableService.mergeEntity(config.table1, comentarios, function(error, res, respons) {
+                                if (!error) {
+                                    console.log(`entity property ${session.privateConversationData.tipo} updated`);
+                                
+                                }
+                                else{
+                                    console.log("<< Error MERGE ENTITY >>", error);
+                                    clearTimeout(time);
+                                    session.endConversation("**Error MERGE ENTITY.**");
+                                }
+                            });
+                       clearTimeout(time);
+                       session.endConversation("**Hemos terminado por ahora, Se enviarán tus observaciones por correo.**");
+                    } else {
+                    // SI COMENTARIOS EXISTE
+                    console.log("Comentarios SI Existe");
+                        console.log(" >> RESULT COMENTARIOS", result.Comentarios._);
+                        console.log(" >> MAILER", session.privateConversationData);
+                        // Correo de notificaciones 
+                        nodeoutlook.sendEmail({
+                            auth: {
+                                user: `esanchezl@mainbit.com.mx`,
+                                pass: `Kokardo04`,
+                            }, from: `esanchezl@mainbit.com.mx`,
+                            to: `esanchezl@mainbit.com.mx `,
+                            subject: `${session.privateConversationData.company} Incidente de ${session.privateConversationData.X}: ${session.privateConversationData.ticket} / ${session.privateConversationData.X}`,
+                            html: `<p>El servicio se pospuso por el siguiente motivo:</p><br><b>${session.privateConversationData.X}</b><br><b><blockquote>${session.privateConversationData.comentarios}</blockquote></b><br><b>Proyecto: ${session.privateConversationData.company}</b><br><b>Ticket: ${session.privateConversationData.ticket}</b><br><b>Titulo: ${session.privateConversationData.titulo}</b>`
+                        });
+                        // Comentarios
+                        console.log(" >> MERGE",session.privateConversationData);
+                        var dateNow = new Date().toLocaleString();
+                        var comentarios = {
+                            PartitionKey : {'_': session.privateConversationData.company, '$':'Edm.String'},
+                            RowKey : {'_': session.privateConversationData.ticket, '$':'Edm.String'},
+                            Comentarios : {'_':dateNow +' '+session.privateConversationData.X +' '+ session.privateConversationData.comentarios+'\n'+result.Comentarios._, '$':'Edm.String'}
+                            
+                        };
+                            
+                            tableService.mergeEntity(config.table1, comentarios, function(error, res, respons) {
+                                if (!error) {
+                                    console.log(`entity property ${session.privateConversationData.tipo} updated`);
+                                
+                                }
+                                else{
+                                    console.log("<< Error MERGE ENTITY >>", error);
+                                    clearTimeout(time);
+                                    session.endConversation("**Error MERGE ENTITY.**");
+                                }
+                            });
+                       clearTimeout(time);
+                       session.endConversation("**Hemos terminado por ahora, Se enviarán tus observaciones por correo.**");
+                    }
                    
                 }
                 else{
                     console.log("<< Error RETRIEVE ENTITY 2>>", error);
                     clearTimeout(time);
-                    session.endConversation("**Error  RETRIEVE ENTITY 2.**");
-                    
+                    session.endConversation("**Error  RETRIEVE ENTITY 2.**"); 
                 }
             });
         }
 
     },
     function (session, results) {
-        // Cuarto diálogo
+        // Séptimo diálogo
         var selection3 = results.response.entity;
         switch (selection3) {
             
@@ -560,7 +584,7 @@ bot.dialog('/', [
         
     },
     function (session, results) {
-        // Quinto diálogo
+        // Octavo diálogo
         var selection2 = results.response.entity;
         session.privateConversationData.tipo = selection2;
         session.privateConversationData.Discriptor ={};
@@ -594,7 +618,7 @@ bot.dialog('/', [
         
     },
     function (session, results) {
-    // Sexto diálogo
+    // Noveno diálogo
         var msg = session.message;
         if (msg.attachments && msg.attachments.length > 0) {
          // Echo back attachment
@@ -667,65 +691,6 @@ bot.dialog('cancel',
 ).triggerAction(
     {matches: /(cancel|cancelar)/gi}
 );
-// bot.dialog('ubicacion', [
-//     function (session) {
-//         var options = {
-//             prompt: "¿Cuál es tu ubicación? indica los siguientes datos separados por coma 'Calle y número, localidad, estado de la república' \n \n Ejemplo:\n \n 'Gabriel Mancera 1306, Colonia del Valle, Ciudad de México' ",
-//             useNativeControl: true,
-//             reverseGeocode: true,
-// 			skipFavorites: true,
-// 			skipConfirmationAsk: true,
-//             requiredFields:
-//                 locationDialog.LocationRequiredFields.streetAddress |
-//                 locationDialog.LocationRequiredFields.locality |
-//                 locationDialog.LocationRequiredFields.region |
-//                 locationDialog.LocationRequiredFields.postalCode |
-//                 locationDialog.LocationRequiredFields.country
-//         };
-
-//         locationDialog.getLocation(session, options);
-//     },
-//     function (session, results) {
-//         if (results.response) {
-//             var place = results.response;
-//             console.log("_Ticket_", session.privateConversationData.ticket);
-
-//             // console.log("_ Geo: ",place);
-//             // console.log("_ Latitud: ",place.geo.latitude);
-//             // console.log("_ Longitud: ",place.geo.longitude);
-//             // console.log("_ Ticket: ",session.privateConversationData.ticket);
-//             // console.log("_ Proyecto: ",session.privateConversationData.company);
-//             var d = new Date();
-//             var m = d.getMonth() + 1;
-//             var c = d.getFullYear()+"-" +m+"-"+ d.getDate()+"-"+ d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
-//             var descriptor = {
-//                 PartitionKey: {'_': place.region, '$':'Edm.String'},
-//                 RowKey: {'_': session.privateConversationData.ticket+"_"+c, '$':'Edm.String'},
-//                 Direccion: {'_': place.name, '$':'Edm.String'},
-//                 Latitud: {'_': place.geo.latitude, '$':'Edm.String'},
-//                 Longitud: {'_': place.geo.longitude, '$':'Edm.String'},
-//                 Proyecto: {'_': session.privateConversationData.company, '$':'Edm.String'}
-//             };
-//             tableService.insertEntity(config.table1, descriptor, function(error, result, response) {
-//                 if (!error) {
-//                     console.log(result, response);
-                    
-//                     clearTimeout(time);
-                    
-//                     session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
-//                 }else{
-//                     console.log(error);
-                    
-//                 }
-//             });
-
-//             // clearTimeout(time);
-// 			// var formattedAddress = 
-//             // session.endConversation("Gracias, tu ubicación sera registrada en " + getFormattedAddressFromPlace(place, ", "));
-//         }
-//     }
-// ]
-// );
 
 bot.dialog("location", [
     function (session) {
